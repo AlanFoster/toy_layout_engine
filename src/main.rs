@@ -1,24 +1,17 @@
 extern crate rand;
 
 pub mod dom;
+pub mod html;
 
 fn main() {
-    let mut link_attributes = dom::AttrMap::new();
-    link_attributes.insert("href".to_owned(), "https://example.com".to_owned());
-    link_attributes.insert("target".to_owned(), "_blank".to_owned());
+    let source = r#"
+        <div>
+          Hello world, this is a useful link:
+          <a href="https://example.com" target="_blank">
+              useful link
+          </a>
+        </div>
+    "#.to_string();
 
-    println!("{}",
-             dom::element("div".to_string(),
-                          dom::AttrMap::new(),
-                          vec![
-                              dom::text("Hello world, this is a useful link:".to_owned()),
-                              dom::element("a".to_string(),
-                                           link_attributes,
-                                           vec![
-                                               dom::text("useful link".to_owned())
-                                           ],
-                              ),
-                          ],
-             )
-    )
+    println!("{}", html::parse(source))
 }

@@ -22,7 +22,7 @@ impl Node {
         match self.node_type {
             NodeType::Text(ref text) => {
                 self._indent(formatter, indentation)?;
-                write!(formatter, "{}", text)
+                write!(formatter, "{}", text.trim())
             },
             NodeType::Element(ref element_data) => {
                 let attributes = match element_data.attributes.is_empty() {
@@ -41,7 +41,6 @@ impl Node {
                     write!(formatter, " {}", attributes)?;
                 }
                 write!(formatter, ">\n")?;
-
                 for child in self.children.iter() {
                     self._indent(formatter, indentation)?;
                     child.display(formatter, indentation + 2)?;
@@ -49,8 +48,7 @@ impl Node {
                 }
 
                 self._indent(formatter, indentation)?;
-                write!(formatter, "</{}>", element_data.tag_name)?;
-                return write!(formatter, "");
+                write!(formatter, "</{}>", element_data.tag_name)
             }
         }
     }
