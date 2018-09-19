@@ -53,7 +53,7 @@ impl Parser {
 
     fn consume_identifier(&mut self) -> String {
         self.consume_while(|c| match c {
-            'a'...'z' | 'A'...'Z' | '0'...'9' => true,
+            'a' ... 'z' | 'A' ... 'Z' | '0' ... '9' => true,
             _ => false,
         })
     }
@@ -77,25 +77,25 @@ impl Parser {
         dom::text(self.consume_while(|c| c != '<'))
     }
 
-    fn parse_element(&mut self) -> dom::Node {;
-        assert!(self.consume_char() == '<');
+    fn parse_element(&mut self) -> dom::Node {
+        assert_eq!(self.consume_char(), '<');
         let tag_name = self.parse_tag_name();
         let attrs = self.parse_attributes();
-        assert!(self.consume_char() == '>');
+        assert_eq!(self.consume_char(), '>');
 
         let children = self.parse_nodes();
 
-        assert!(self.consume_char() == '<');
-        assert!(self.consume_char() == '/');
-        assert!(self.parse_tag_name() == tag_name);
-        assert!(self.consume_char() == '>');
+        assert_eq!(self.consume_char(), '<');
+        assert_eq!(self.consume_char(), '/');
+        assert_eq!(self.parse_tag_name(), tag_name);
+        assert_eq!(self.consume_char(), '>');
 
         dom::element(tag_name, attrs, children)
     }
 
     fn parse_attr(&mut self) -> (String, String) {
         let name = self.parse_attr_name();
-        debug_assert!(self.consume_char() == '=');
+        assert_eq!(self.consume_char(), '=');
         let value = self.parse_attr_value();
 
         (name, value)
@@ -105,7 +105,7 @@ impl Parser {
         let start_quote = self.consume_char();
         assert!(start_quote == '"' || start_quote == '\'');
         let value = self.consume_while(|c| c != start_quote);
-        assert!(self.consume_char() == start_quote);
+        assert_eq!(self.consume_char(), start_quote);
 
         value
     }
@@ -137,5 +137,42 @@ impl Parser {
         }
 
         nodes
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_simple_css() {
+        let input = r#"
+            <div>
+              Hello world, this is a useful link:
+              <a href="https://example.com" target="_blank">
+                  useful link
+              </a>
+            </div>
+        "#.to_string();
+
+        let mut link_attributes = dom::AttrMap::new();
+        link_attributes.insert("href".to_owned(), "https://example.com".to_owned());
+        link_attributes.insert("target".to_owned(), "_blank".to_owned());
+
+        assert_eq!(
+            parse(input),
+            dom::element("div".to_string(),
+                         dom::AttrMap::new(),
+                         vec![
+                             dom::text("Hello world, this is a useful link:\n              ".to_owned()),
+                             dom::element("a".to_string(),
+                                          link_attributes,
+                                          vec![
+                                              dom::text("useful link\n              ".to_owned())
+                                          ],
+                             )
+                         ],
+            )
+        )
     }
 }

@@ -3,6 +3,7 @@ use std::fmt;
 
 pub type AttrMap = HashMap<String, String>;
 
+#[derive(Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
 
@@ -60,11 +61,13 @@ impl fmt::Display for Node {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum NodeType {
     Text(String),
     Element(ElementData),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ElementData {
     tag_name: String,
     attributes: AttrMap,
