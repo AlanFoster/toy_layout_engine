@@ -11,6 +11,24 @@ struct Rule {
     declarations: Vec<Declaration>,
 }
 
+
+type IdSelectorCount = usize;
+type ClassSelectorCount = usize;
+type TypeSelectorCount = usize;
+
+pub type Specificity = (IdSelectorCount, ClassSelectorCount, TypeSelectorCount);
+
+impl Selector {
+    pub fn specificity(&self) -> Specificity {
+        // http://www.w3.org/TR/selectors/#specificity
+        let Selector::Simple(ref simple) = *self;
+        let id_selector_count = simple.id.iter().count();
+        let class_selector_count = simple.class.len();
+        let type_selector_count = simple.tag_name.iter().count();
+        (id_selector_count, class_selector_count, type_selector_count)
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum Selector {
     Simple(SimpleSelector),
@@ -103,6 +121,8 @@ impl Parser {
                 e @ _ => panic!("Unexpected char {}", e),
             }
         }
+
+        selectors.sort_by(|a,b| b.specificity().cmp(&a.specificity()));
 
         selectors
     }
@@ -363,8 +383,8 @@ mod tests {
                         selectors: vec![
                             Selector::Simple(
                                 SimpleSelector {
-                                    tag_name: Some("h1".to_string()),
-                                    id: None,
+                                    tag_name: None,
+                                    id: Some("foo".to_string()),
                                     class: Vec::new(),
                                 }
                             ),
@@ -377,8 +397,8 @@ mod tests {
                             ),
                             Selector::Simple(
                                 SimpleSelector {
-                                    tag_name: None,
-                                    id: Some("foo".to_string()),
+                                    tag_name: Some("h1".to_string()),
+                                    id: None,
                                     class: Vec::new(),
                                 }
                             ),
